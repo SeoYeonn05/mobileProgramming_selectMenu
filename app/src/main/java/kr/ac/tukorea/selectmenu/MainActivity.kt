@@ -8,62 +8,60 @@ import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import java.io.File
+import kotlin.concurrent.timer
 
 class MainActivity : AppCompatActivity() {
     lateinit var myHelper:myDBHelper
     lateinit var menuImageView:ImageView
-    lateinit var menuSelectBtn:Button
-    lateinit var menuAddBtn:Button
+    lateinit var menuSelectBtn: ImageView
     lateinit var edtMenuResult:EditText
     lateinit var sqlDB:SQLiteDatabase
 
-    var curNum:Int=1
-    //음식 이름과 사진 url Array
-    var foodArray=arrayOf(arrayOf("비빔밥", "R.drawable.bibimbap"),arrayOf("라면", "R.drawable.ramen"), arrayOf("파스타", "R.drawable.pasta"), arrayOf("햄버거", "R.drawable.hamburger")))
 
+    //음식 이름과 사진 url Array
+    var foodArray=arrayOf(arrayOf("비빔밥", "R.drawable.bibimbap"),arrayOf("라면", "R.drawable.ramen"), arrayOf("파스타", "R.drawable.pasta"), arrayOf("햄버거", "R.drawable.hamburger"))
+    var curNum:Int=foodArray.size
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        menuImageView.findViewById<ImageView>(R.id.randomFoodImage)
-        menuSelectBtn.findViewById<Button>(R.id.selectBtn)
-        edtMenuResult.findViewById<EditText>(R.id.edtMenuResult)
-        menuAddBtn.findViewById<Button>(R.id.addBtn)
+        menuSelectBtn = findViewById<ImageView>(R.id.selectBtn)
+        menuImageView = findViewById<ImageView>(R.id.randomFoodImage)
+
 
         myHelper=myDBHelper(this)   //  menuDB 데이터베이스 생성
 
-//        var timerFunction=null;
+        saveMenuToDatabase()
+        changeRandomImageUrl()
 
-
-        firstMenuSave()
-//        timerFunction=setInterval(changeImage(), 1000)
-
-        menuSelectBtn.setOnClickListener {
-
+        var timerTask = timer(period=1000){ //  changeRamdomImageUrl을 1초마다 생성 이미지가 1초마다 변경됨
+            changeRandomImageUrl()
         }
 
+
+        menuSelectBtn.setOnClickListener {  //  timer을 정지시킴
+            timerTask.cancel()
+        }
     }
-    private fun firstMenuSave(){    //  처음 음식 메뉴 DB에 저장
+
+    private fun saveMenuToDatabase(){    //  음식 메뉴 DB에 저장
         sqlDB=myHelper.writableDatabase
-        for(i in 1..curNum step 1){
-            sqlDB.execSQL("INSERT INTO menuDB VALUES ( '"+foodArray!![i][0]+"',"+foodArray!![i][1]+");")
+        for(i in 0 until curNum step 1){
+            sqlDB.execSQL("INSERT INTO menuDB VALUES ( "+i+", '"+foodArray!![i][0]+"', '"+foodArray!![i][1]+"');")
         }
         sqlDB.close()
     }
 
-    fun changeImage(){
-        var url=getResources().getIdentifier(readDatabase(), null, null)
+    private fun changeRandomImageUrl(){
+        var url=getResources().getIdentifier(getImageId(), null, null)
         menuImageView.setImageResource(url)
     }
 
-    fun readDatabase():String{
-        var range=(1..curNum).random()
+    private fun getImageId():String{
+        var range=(0 until curNum).random()
 
         sqlDB=myHelper.readableDatabase
         var cursor:Cursor   //menuDB 테이블에서 가져온 데이터를 커서에 전달
@@ -76,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             db!!.execSQL("CREATE TABLE menuDB (menuNo INTERGER(10), menuName CHAR(20), menuURL CHAR(30));")
         }
         override fun onUpgrade(db: SQLiteDatabase?, p1: Int, p2: Int) {
-            db!!.execSQL("ALTER TABLE menuDB EXISTS menuDB")
+            db!!.execSQL("DROP TABLE IF EXISTS menuDB")
             onCreate(db)
         }
     }
