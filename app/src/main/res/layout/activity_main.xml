@@ -37,18 +37,17 @@
         <ImageView
             android:id="@+id/randomFoodImage"
             android:layout_width="wrap_content"
-            android:layout_height="273dp"
+            android:layout_height="270dp"
             android:layout_weight="1"
+            android:background="@color/white"
             android:scaleType="fitCenter"
-            android:src="@drawable/ramen" />
+            android:src="@drawable/woman" />
         <ImageView
             android:id="@+id/selectBtn"
             android:layout_marginTop="30dp"
             android:layout_gravity="center"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:scaleType="fitStart"
-            android:background="@color/white"
             android:src="@drawable/food_service"/>
         <TextView
             android:layout_width="wrap_content"
